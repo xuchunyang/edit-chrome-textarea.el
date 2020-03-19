@@ -44,6 +44,12 @@
   "Edit Chrome Textarea."
   :group 'applications)
 
+(defcustom edit-chrome-textarea-persistent-message t
+  "Non-nil means show persistent exit help message while editing textarea.
+The message is shown in the header-line, which will be created in the
+first line of the window showing the editing buffer."
+  :type 'boolean)
+
 (defvar-local edit-chrome-textarea--current-connection nil
   "A `edit-chrome-textarea--connection' object associated with the current buffer.")
 
@@ -109,6 +115,11 @@
   "Minor mode enabled on buffers opened by Edit Chrome Textarea."
   :lighter " Edit Chrome Textarea"
   (when edit-chrome-textarea-mode
+    (when edit-chrome-textarea-persistent-message
+      (setq header-line-format
+            (substitute-command-keys
+             "Edit, then commit with `\\[edit-chrome-textarea-finalize]' or abort with \
+`\\[edit-chrome-textarea-discard]'")))
     (add-hook 'kill-buffer-hook #'edit-chrome-textarea--connection-close nil t)))
 
 (defun edit-chrome-textarea-new-buffer-name (title url)
