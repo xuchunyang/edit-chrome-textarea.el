@@ -136,7 +136,8 @@ WS is the websocket.
 ID is the JSONRPC ID.
 CALLBACKS is a hash-table, its key is ID, its value is a
 function, which takes a argument, the JSON result."
-  ws (id 0) (callbacks (make-hash-table :test #'eq)))
+  ws (id 0) (callbacks (make-hash-table :test #'eq))
+  url title)
 
 (defun edit-chrome-textarea--ws-on-message (ws frame)
   "Dispatch connections callbacks according to WS and FRAME."
@@ -154,12 +155,14 @@ function, which takes a argument, the JSON result."
        (remhash id callbacks)
        (funcall func result)))))
 
-(defun edit-chrome-textarea-connection-make (ws-url)
-  "Connect to websocket WS-URL, return a connection."
+(defun edit-chrome-textarea-connection-make (ws-url url title)
+  "Connect to websocket at WS-URL, store URL and TITLE, return a connection."
   (let ((ws (websocket-open ws-url :on-message #'edit-chrome-textarea--ws-on-message))
         (conn (edit-chrome-textarea-connection-make-1)))
     (setf (edit-chrome-textarea-connection-ws conn) ws)
     (setf (process-get (websocket-conn ws) 'edit-chrome-textarea-connection) conn)
+    (setf (edit-chrome-textarea-connection-url conn) url)
+    (setf (edit-chrome-textarea-connection-title conn) title)
     conn))
 
 (defun edit-chrome-textarea--async-request (conn method params callback)
@@ -218,7 +221,7 @@ CALLBACK will be called with the response result."
             ws-url .webSocketDebuggerUrl))
     (message "Editing %s - %s" title url)
     (message "Connecting to %s..." ws-url)
-    (setq conn (edit-chrome-textarea-connection-make ws-url))
+    (setq conn (edit-chrome-textarea-connection-make ws-url url title))
     (accept-process-output nil 0.1)
     (message "Connecting to %s...done" ws-url)
     (message nil)
