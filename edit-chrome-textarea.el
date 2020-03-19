@@ -50,8 +50,8 @@ The message is shown in the header-line, which will be created in the
 first line of the window showing the editing buffer."
   :type 'boolean)
 
-(defvar-local edit-chrome-textarea--current-connection nil
-  "A `edit-chrome-textarea--connection' object associated with the current buffer.")
+(defvar-local edit-chrome-textarea-current-connection nil
+  "A `edit-chrome-textarea-connection' object associated with the current buffer.")
 
 (defun edit-chrome-textarea--json-read-from-string (string)
   "Read JSON in STRING."
@@ -87,7 +87,7 @@ first line of the window showing the editing buffer."
 (defun edit-chrome-textarea-finalize ()
   "Send current buffer to Chrome, close connection, kill buffer."
   (interactive)
-  (pcase edit-chrome-textarea--current-connection
+  (pcase edit-chrome-textarea-current-connection
     ('nil (user-error "No connection associated with current buffer"))
     (conn
      (let-alist (edit-chrome-textarea--request
@@ -99,16 +99,16 @@ first line of the window showing the editing buffer."
        (if (stringp .result.value)
            (message "edit-chrome-textarea-finalize: Success")
          (message "edit-chrome-textarea-finalize: Error: result: %s" .result))
-       (edit-chrome-textarea--connection-close)
+       (edit-chrome-textarea-connection-close)
        (kill-buffer)))))
 
 (defun edit-chrome-textarea-discard ()
   "Discard current buffer, close connection, kill buffer."
   (interactive)
-  (pcase edit-chrome-textarea--current-connection
+  (pcase edit-chrome-textarea-current-connection
     ('nil (user-error "No connection associated with current buffer"))
     (_
-     (edit-chrome-textarea--connection-close)
+     (edit-chrome-textarea-connection-close)
      (kill-buffer))))
 
 (define-minor-mode edit-chrome-textarea-mode
@@ -120,7 +120,7 @@ first line of the window showing the editing buffer."
             (substitute-command-keys
              "Edit, then commit with `\\[edit-chrome-textarea-finalize]' or abort with \
 `\\[edit-chrome-textarea-discard]'")))
-    (add-hook 'kill-buffer-hook #'edit-chrome-textarea--connection-close nil t)))
+    (add-hook 'kill-buffer-hook #'edit-chrome-textarea-connection-close nil t)))
 
 (defun edit-chrome-textarea-new-buffer-name (title url)
   "Return a new buffer name for TITLE and URL."
@@ -128,21 +128,20 @@ first line of the window showing the editing buffer."
     ("" url)
     (_ title)))
 
-(cl-defstruct (edit-chrome-textarea--connection
-               (:constructor edit-chrome-textarea--connection-make-1)
+(cl-defstruct (edit-chrome-textarea-connection
+               (:constructor edit-chrome-textarea-connection-make-1)
                (:copier nil))
   "Represent a websocket connections.
 WS is the websocket.
 ID is the JSONRPC ID.
-
 CALLBACKS is a hash-table, its key is ID, its value is a
 function, which takes a argument, the JSON result."
   ws (id 0) (callbacks (make-hash-table :test #'eq)))
 
 (defun edit-chrome-textarea--ws-on-message (ws frame)
   "Dispatch connections callbacks according to WS and FRAME."
-  (let* ((conn (process-get (websocket-conn ws) 'edit-chrome-textarea--connection))
-         (callbacks (edit-chrome-textarea--connection-callbacks conn))
+  (let* ((conn (process-get (websocket-conn ws) 'edit-chrome-textarea-connection))
+         (callbacks (edit-chrome-textarea-connection-callbacks conn))
          ;; => ((id . 1) (method . "Runtime.evaluate") (params (expression . "document.activeElement.value")))
          ;; <= ((id . 1) (result (result (type . "string") (value . "hello"))))
          (json (edit-chrome-textarea--json-read-from-string
@@ -155,12 +154,12 @@ function, which takes a argument, the JSON result."
        (remhash id callbacks)
        (funcall func result)))))
 
-(defun edit-chrome-textarea--connection-make (ws-url)
+(defun edit-chrome-textarea-connection-make (ws-url)
   "Connect to websocket WS-URL, return a connection."
   (let ((ws (websocket-open ws-url :on-message #'edit-chrome-textarea--ws-on-message))
-        (conn (edit-chrome-textarea--connection-make-1)))
-    (setf (edit-chrome-textarea--connection-ws conn) ws)
-    (setf (process-get (websocket-conn ws) 'edit-chrome-textarea--connection) conn)
+        (conn (edit-chrome-textarea-connection-make-1)))
+    (setf (edit-chrome-textarea-connection-ws conn) ws)
+    (setf (process-get (websocket-conn ws) 'edit-chrome-textarea-connection) conn)
     conn))
 
 (defun edit-chrome-textarea--async-request (conn method params callback)
@@ -171,8 +170,8 @@ CALLBACK will be called with the response result."
   (unless params
     ;; so `json-encode' can encode nil as empty object
     (setq params #s(hash-table)))
-  (pcase-let (((cl-struct edit-chrome-textarea--connection ws id callbacks) conn))
-    (cl-incf (edit-chrome-textarea--connection-id conn))
+  (pcase-let (((cl-struct edit-chrome-textarea-connection ws id callbacks) conn))
+    (cl-incf (edit-chrome-textarea-connection-id conn))
     (puthash id callback callbacks)
     (websocket-send-text ws (json-encode (list :id id :method method :params params)))
     ;; for `edit-chrome-textarea--request'
@@ -191,21 +190,21 @@ CALLBACK will be called with the response result."
                          (throw tag `(done ,result)))))
                 (while t (accept-process-output nil 30)))
             ;; user-quit (C-g)
-            (remhash id (edit-chrome-textarea--connection-callbacks conn)))))
+            (remhash id (edit-chrome-textarea-connection-callbacks conn)))))
     (pcase-exhaustive retval
       (`(done ,result) result))))
 
-(defun edit-chrome-textarea--connection-close (&optional conn)
+(defun edit-chrome-textarea-connection-close (&optional conn)
   "Close connection CONN."
   (cond
    (conn
-    (pcase-let (((cl-struct edit-chrome-textarea--connection ws) conn))
+    (pcase-let (((cl-struct edit-chrome-textarea-connection ws) conn))
       (websocket-close ws)))
-   (edit-chrome-textarea--current-connection
-    (pcase-let (((cl-struct edit-chrome-textarea--connection ws)
-                 edit-chrome-textarea--current-connection))
+   (edit-chrome-textarea-current-connection
+    (pcase-let (((cl-struct edit-chrome-textarea-connection ws)
+                 edit-chrome-textarea-current-connection))
       (websocket-close ws))
-    (setq edit-chrome-textarea--current-connection nil))))
+    (setq edit-chrome-textarea-current-connection nil))))
 
 (defun edit-chrome-textarea ()
   "Edit current focused textarea in Chrome."
@@ -219,7 +218,7 @@ CALLBACK will be called with the response result."
             ws-url .webSocketDebuggerUrl))
     (message "Editing %s - %s" title url)
     (message "Connecting to %s..." ws-url)
-    (setq conn (edit-chrome-textarea--connection-make ws-url))
+    (setq conn (edit-chrome-textarea-connection-make ws-url))
     (accept-process-output nil 0.1)
     (message "Connecting to %s...done" ws-url)
     (message nil)
@@ -233,7 +232,7 @@ CALLBACK will be called with the response result."
                 'Runtime.evaluate
                 '(:expression "_ECT = document.activeElement; _ECT.value"))
       (unless (stringp .result.value)
-        (edit-chrome-textarea--connection-close conn)
+        (edit-chrome-textarea-connection-close conn)
         (user-error "Can't find focused textarea: result: %s" .result))
       (setq initial .result.value))
 
@@ -243,9 +242,9 @@ CALLBACK will be called with the response result."
                           (edit-chrome-textarea-new-buffer-name title url))
       (insert initial)
       (goto-char (point-min))
+      (setq edit-chrome-textarea-current-connection conn)
       (edit-chrome-textarea-mode)
-      (setq edit-chrome-textarea--current-connection conn)
-      (select-window (display-buffer (current-buffer)))))
+      (select-window (display-buffer (current-buffer))))))
 
-  (provide 'edit-chrome-textarea))
+(provide 'edit-chrome-textarea)
 ;;; edit-chrome-textarea.el ends here
