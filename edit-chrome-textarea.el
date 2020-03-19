@@ -209,6 +209,11 @@ CALLBACK will be called with the response result."
       (websocket-close ws))
     (setq edit-chrome-textarea-current-connection nil))))
 
+(defun edit-chrome-textarea-set-major-mode (_url _title _content)
+  "Set major mode for editing buffer depending on URL, TITLE and CONTENT."
+  ;; no-op
+  )
+
 (defun edit-chrome-textarea ()
   "Edit current focused textarea in Chrome."
   (interactive)
@@ -243,6 +248,7 @@ CALLBACK will be called with the response result."
     ;; 
     (with-current-buffer (generate-new-buffer
                           (edit-chrome-textarea-new-buffer-name title url))
+      (edit-chrome-textarea-set-major-mode url title initial)
       (insert initial)
       (goto-char (point-min))
       (setq edit-chrome-textarea-current-connection conn)
