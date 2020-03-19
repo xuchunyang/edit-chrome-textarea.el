@@ -5,6 +5,11 @@ Protocol](https://chromedevtools.github.io/devtools-protocol).
 
 ## Usage
 
+To use this package, you need to enable Chrome DevTools Protocol by launching
+Chrome with `--remote-debugging-port=9222`, if you are on macOS, you can use
+
+    $ open -a Google\ Chrome --args --remote-debugging-port=9222
+
 1. Select the textarea you want to edit in Chrome
 2. Switch to Emacs, type `M-x edit-chrome-textarea` to open a buffer pre-filled
    with the textarea's content
