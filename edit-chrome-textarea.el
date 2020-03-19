@@ -50,6 +50,18 @@ The message is shown in the header-line, which will be created in the
 first line of the window showing the editing buffer."
   :type 'boolean)
 
+(defcustom edit-chrome-textarea-guess-mode-function
+  #'edit-chrome-textarea-default-guess-mode-function
+  "The function used to guess the major mode of an editing buffer.
+It's called with the editing buffer as the current buffer.
+It's called with three arguments, URL, TITLE and CONTENT."
+  :type 'function)
+
+(defun edit-chrome-textarea-default-guess-mode-function (_url _title _content)
+  "Set major mode for editing buffer depending on URL, TITLE and CONTENT."
+  ;; no-op
+  (text-mode))
+
 (defvar-local edit-chrome-textarea-current-connection nil
   "A `edit-chrome-textarea-connection' object associated with the current buffer.")
 
@@ -209,11 +221,6 @@ CALLBACK will be called with the response result."
       (websocket-close ws))
     (setq edit-chrome-textarea-current-connection nil))))
 
-(defun edit-chrome-textarea-set-major-mode (_url _title _content)
-  "Set major mode for editing buffer depending on URL, TITLE and CONTENT."
-  ;; no-op
-  )
-
 (defun edit-chrome-textarea ()
   "Edit current focused textarea in Chrome."
   (interactive)
@@ -248,11 +255,11 @@ CALLBACK will be called with the response result."
     ;; 
     (with-current-buffer (generate-new-buffer
                           (edit-chrome-textarea-new-buffer-name title url))
-      (edit-chrome-textarea-set-major-mode url title initial)
+      (funcall edit-chrome-textarea-guess-mode-function url title initial)
+      (edit-chrome-textarea-mode)
       (insert initial)
       (goto-char (point-min))
       (setq edit-chrome-textarea-current-connection conn)
-      (edit-chrome-textarea-mode)
       (select-window (display-buffer (current-buffer))))))
 
 (provide 'edit-chrome-textarea)
