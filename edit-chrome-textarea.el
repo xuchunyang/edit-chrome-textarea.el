@@ -211,6 +211,7 @@ CALLBACK will be called with the response result."
     (setq conn (edit-chrome-textarea--connection-make ws-url))
     (accept-process-output nil 0.1)
     (message "Connecting to %s...done" ws-url)
+    (message nil)
 
     ;; Fetch initial content
     ;;
