@@ -16,12 +16,27 @@ Chrome with `--remote-debugging-port=9222`, if you are on macOS, you can use
 3. Hit `C-c C-c` to send text in current buffer back to Chrome or `C-c C-k` to
    discard
 
-## Requires
-
-- Emacs 25.1
-- the websocket package, https://github.com/ahyatt/emacs-websocket
 
 ## Alternatives
 
 - the edit-server package, https://github.com/stsquad/emacs_chrome
 - the atomic-chrome package, https://github.com/alpha22jp/atomic-chrome
+
+### Comparison with atomic-chrome
+
+Pros:
+
+- Don't need to install a browser extension
+
+Cons:
+
+- Users need to enable Chrome DevTools Protocol
+- Edit-chrome-textarea can't sync between Chrome and Emacs on-the-fly (it's
+  possible with Chrome DevTools Protocol but beyond my skills)
+- Edit-chrome-textarea can't understand editable div such as CodeMirror used by
+  GitHub (it's also possible but beyond my skills)
+
+## Requires
+
+- Emacs 25.1
+- the websocket package, https://github.com/ahyatt/emacs-websocket
