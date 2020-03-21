@@ -103,6 +103,7 @@ It's called with three arguments, URL, TITLE and CONTENT."
 (defvar edit-chrome-textarea-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") 'edit-chrome-textarea-finalize)
+    (define-key map (kbd "C-c C-s") 'edit-chrome-textarea-send)
     (define-key map (kbd "C-c C-k") 'edit-chrome-textarea-discard)
     map)
   "The minor mode keymap.")
@@ -124,6 +125,22 @@ It's called with three arguments, URL, TITLE and CONTENT."
          (message "edit-chrome-textarea-finalize: Error: result: %s" .result))
        (edit-chrome-textarea-connection-close)
        (kill-buffer)))))
+
+(defun edit-chrome-textarea-send ()
+  "Send current buffer to Chrome."
+  (interactive)
+  (pcase edit-chrome-textarea-current-connection
+    ('nil (user-error "No connection associated with current buffer"))
+    (conn
+     (let-alist (edit-chrome-textarea--request
+                 conn
+                 'Runtime.evaluate
+                 (list :expression
+                       (format "_ECT.value = decodeURIComponent('%s')"
+                               (url-hexify-string (buffer-string)))))
+       (if (stringp .result.value)
+           (message "edit-chrome-textarea-send: Success")
+         (message "edit-chrome-textarea-finalize: Error: result: %s" .result))))))
 
 (defun edit-chrome-textarea-discard ()
   "Discard current buffer, close connection, kill buffer."
