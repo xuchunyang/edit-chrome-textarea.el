@@ -44,6 +44,14 @@
   "Edit Chrome Textarea."
   :group 'applications)
 
+(defcustom edit-chrome-textarea-host "127.0.0.1"
+  "Host where the Chrome DevTools Protocol is running."
+  :type 'string)
+
+(defcustom edit-chrome-textarea-port 9222
+  "Port where the Chrome DevTools Protocol is running."
+  :type 'integer)
+
 (defcustom edit-chrome-textarea-persistent-message t
   "Non-nil means show persistent exit help message while editing textarea.
 The message is shown in the header-line, which will be created in the
@@ -87,7 +95,10 @@ It's called with three arguments, URL, TITLE and CONTENT."
 
 (defun edit-chrome-textarea--first-page ()
   "Return first page of Chrome, that is, the active tab's page."
-  (car (edit-chrome-textarea--url-request "http://localhost:9222/json")))
+  (car (edit-chrome-textarea--url-request
+        (format "http://%s:%d/json"
+                edit-chrome-textarea-host
+                edit-chrome-textarea-port))))
 
 (defvar edit-chrome-textarea-mode-map
   (let ((map (make-sparse-keymap)))
