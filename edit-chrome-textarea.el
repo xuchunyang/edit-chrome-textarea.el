@@ -221,6 +221,9 @@ CALLBACK will be called with the response result."
     id))
 
 (defun edit-chrome-textarea--request (conn method params)
+  "Make a request to CONN, wait for a reply.
+METHOD is the JSONRPC request method, a symbol.
+PARAMS is the JSONRPC request params, a plist."
   (let* ((tag (cl-gensym "edit-chrome-textarea--request-catch-tag"))
          id
          (retval
