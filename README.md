@@ -1,4 +1,5 @@
 # Edit Chrome Textarea
+[![Melpa](https://melpa.org/packages/edit-chrome-textarea-badge.svg)](https://melpa.org/#/edit-chrome-textarea)
 
 This is an Emacs package for editing Chrome textarea through [Chrome DevTools
 Protocol](https://chromedevtools.github.io/devtools-protocol).
