@@ -22,6 +22,7 @@ Chrome with `--remote-debugging-port=9222`, if you are on macOS, you can use
 
 - the edit-server package, https://github.com/stsquad/emacs_chrome
 - the atomic-chrome package, https://github.com/alpha22jp/atomic-chrome
+- [ubolonton/pullover: Pull text from other (macOS) apps into Emacs to edit](https://github.com/ubolonton/pullover)
 
 ### Comparison with atomic-chrome
 
