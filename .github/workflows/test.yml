@@ -25,8 +25,7 @@ jobs:
         emacs -Q --batch -f batch-byte-compile websocket.el
     - name: Checkdoc
       run: |
-        # NOTE checkdoc-file does NOT exit non-zero when errors are found
-        emacs -Q --batch --eval '(checkdoc-file "edit-chrome-textarea.el")'
+        if emacs -Q --batch --eval '(checkdoc-file "edit-chrome-textarea.el")' 2>&1 | grep .; then false; else true; fi
     - name: Byte compile
       run: |
         emacs -Q --batch -L . --eval "(setq byte-compile-error-on-warn t)" -f batch-byte-compile edit-chrome-textarea.el
