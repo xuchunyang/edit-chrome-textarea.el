@@ -23,6 +23,10 @@ jobs:
       run: |
         curl --silent --remote-name https://raw.githubusercontent.com/ahyatt/emacs-websocket/master/websocket.el
         emacs -Q --batch -f batch-byte-compile websocket.el
+    - name: Checkdoc
+      run: |
+        # NOTE checkdoc-file does NOT exit non-zero when errors are found
+        emacs -Q --batch --eval '(checkdoc-file "edit-chrome-textarea.el")'
     - name: Byte compile
       run: |
         emacs -Q --batch -L . --eval "(setq byte-compile-error-on-warn t)" -f batch-byte-compile edit-chrome-textarea.el
